@@ -1,0 +1,7 @@
+# Aptana/Eclipse project files
+.project
+.pydevproject
+.settings/
+
+# Compiled source
+*.pyc
