@@ -1,12 +1,13 @@
-
 import re
+import bs4
 
 class Article:
     def __init__(self, title, content, images):
         self.title = title
         self.content = content
         self.images = images
-        self.ignore = ['Der', 'Die', 'Das', 'Da']
+        
+        self._fetchText()
         
         self.wordIndex = None
         self.wordUniques = None
@@ -22,34 +23,40 @@ class Article:
     def __str__(self):
         return self.title
     
+    def _fetchText(self):
+        self.text = ''
+        for element in self.content:
+            if not isinstance(element, bs4.element.NavigableString):
+                for child in element.find_all('p'):
+                    self.text += '%s ' % (child.get_text(strip = False))
+        
+        pattern = re.compile(r'\[\d+\]')
+        self.text = re.sub(pattern, '', self.text) # Strip literature references
+    
     def _createWordIndex(self):
         self.wordIndex = []
         self.wordUniques = []
-        tempWordIndex = []
-        
+            
         badChars = '.,:;?!()[]'
-        for (_, title, text) in self.content:
-            tempWordIndex.extend([v.strip(badChars) for v in title.split()])
-            tempWordIndex.extend([v.strip(badChars) for v in text.split()])
-        for word in tempWordIndex:
-            if word.istitle() and word not in self.ignore and len(word) > 2:
-                self.wordIndex.append(word)
-                if word not in self.wordUniques:
-                    self.wordUniques.append(word)
+        for word in self.text.split():
+            if (word.istitle() and len(word) > 2) or len(word) > 5:
+                self.wordIndex.append(word.strip(badChars))
+        
+        for word in self.wordIndex:
+            if word not in self.wordUniques:
+                self.wordUniques.append(word)
     
     def _createSentenceIndex(self):
-        self.sentenceIndex = dict()
-        pattern = re.compile(r'[^\s\d]+[.!?:]\s|$')
-        for (_, title, text) in self.content:
-            absolutePosition = 0
-            match = pattern.search(text)
-            while match is not None and absolutePosition < len(text):
-                sentenceLength = match.end()
-                if title not in self.sentenceIndex:
-                    self.sentenceIndex[title] = []
-                self.sentenceIndex[title].append(text[absolutePosition:absolutePosition + sentenceLength].strip())
-                match = pattern.search(text[absolutePosition + sentenceLength:])
-                absolutePosition += sentenceLength
+        self.sentenceIndex = []
+        
+        pattern = re.compile(r'[^\s\d]{2,}[.!?:]\s|$')
+        position = 0
+        match = pattern.search(self.text)
+        while match is not None and position < len(self.text):
+            sentenceLength = match.end()
+            self.sentenceIndex.append(self.text[position:position + sentenceLength].strip())
+            match = pattern.search(self.text[position + sentenceLength:])
+            position += sentenceLength
     
     def _weightWords(self):
         max = ('', 0.0)
@@ -58,26 +65,24 @@ class Article:
             for word in self.wordIndex:
                 if word.find(unique) != -1:
                     if unique in self.wordWeights:
-                        self.wordWeights[unique] += 1
+                        self.wordWeights[unique] += 1.0
                     else:
-                        self.wordWeights[unique] = 1
+                        self.wordWeights[unique] = 1.0
                     if self.wordWeights[unique] > max[1]:
                         max = (unique, self.wordWeights[unique])
         for unique in self.wordWeights:
             self.wordWeights[unique] = (self.wordWeights[unique] * 1000.0) / max[1]
-            
     
     def _weightSentences(self):
         self.sentenceWeights = []
-        for section in self.sentenceIndex:
-            for sentence in self.sentenceIndex[section]:
-                sentenceWeight = 0.0
-                for word in self.wordUniques:
-                    if sentence.find(word) != -1:
-                        sentenceWeight += self.wordWeights[word]
-                if len(sentence.split()) > 2:
-                    sentenceWeight /= float(len(sentence.split()))
-                    self.sentenceWeights.append((sentence, sentenceWeight))
+        for sentence in self.sentenceIndex:
+            weight = 0.0
+            for word in self.wordUniques:
+                if sentence.find(word) != -1:
+                    weight += self.wordWeights[word]
+            if len(sentence.split()) > 2:
+                weight /= float(len(sentence.split()))
+                self.sentenceWeights.append((sentence, weight))
             
                 
             

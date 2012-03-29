@@ -5,3 +5,6 @@
 
 # Compiled source
 *.pyc
+
+# External libraries
+bs4/
