@@ -9,8 +9,8 @@ def launch():
     parser = wkp.parser.ArticleParser(example)
     article = parser.getArticle()
     
-    for (sentence, weight) in sorted(article.sentenceWeights, key = lambda s: s[1], reverse = True):
-        print('%6.2f: %s' % (weight, sentence))
+    for s in article.sentences:
+        print('%8.2f - %s' % (s.impact, s.original))
     
 if __name__ == '__main__':
     launch()
