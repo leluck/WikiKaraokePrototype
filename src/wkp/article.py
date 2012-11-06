@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 
+import os
 import re
+
+from urllib import FancyURLopener
+
 import bs4
 
 import wkp.word
@@ -17,6 +21,7 @@ class Article:
         
         self.words = dict()
         self.sentences = list()
+        self.storedImages = list()
         
         self._analyze()
     
@@ -34,6 +39,8 @@ class Article:
         self.text = re.sub(pattern, '', self.text) # Strip literature references
     
     def _analyze(self):
+        print('Analyzing article...')
+        
         # Scan for all words and count their stem's occurences
         for word in self.text.split():
             stem = stemmer.stem(word)
@@ -65,3 +72,38 @@ class Article:
             position += endPos
         
         self.sentences = sorted(self.sentences, reverse = True)
+        
+    def downloadImages(self, overwrite = False):
+        print('Downloading article images...')
+        
+        targetdir = '../tmp'
+        if not os.path.isdir(targetdir):
+            os.mkdir(targetdir)
+        
+        imagecount = 0
+        for url in self.images:
+            imagecount += 1
+            parts = url.split('/')
+            if 'thumb' in parts:
+                # Remove mid-string 'thumb' and last part, as they refer to the resized 
+                # version of a wikipedia image
+                parts.remove('thumb')
+                parts.remove(parts[-1])
+                url = '/'.join(parts)
+           
+            safename = ''.join([c for c in self.title.lower() if c.isalpha() or c.isdigit() or c == ' ']).rstrip()
+            filename = '%s_%03d.%s' % (safename.replace(' ', '-'), imagecount, parts[-1].split('.')[-1])
+            fullpath = os.path.join(targetdir, filename)
+            if os.path.isfile(fullpath):
+                if overwrite:
+                    os.remove(fullpath)
+                else:
+                    raise IOError('File already exists.')
+            
+            opener = ImageDownloader()
+            opener.retrieve(url, fullpath)
+            
+            self.storedImages.append(fullpath)
+
+class ImageDownloader(FancyURLopener):
+    version = '(Linux; U; Android 2.2.1; de-DE) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1'

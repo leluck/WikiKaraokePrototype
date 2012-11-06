@@ -8,3 +8,7 @@
 
 # External libraries
 bs4/
+pyfpdf/
+
+# Temporary folder for downloads
+tmp/

@@ -11,6 +11,8 @@ class ArticleParser:
         self._parse()
             
     def _parse(self):
+        print('Retrieving article...')
+        
         req = urllib2.Request(self.url)
         req.add_header('User-Agent', 'Mozilla/5.0')
         #(Linux; U; Android 2.2.1; de-DE) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1
