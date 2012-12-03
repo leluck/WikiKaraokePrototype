@@ -90,20 +90,20 @@ class Article:
                 parts.remove('thumb')
                 parts.remove(parts[-1])
                 url = '/'.join(parts)
-           
+            
             safename = ''.join([c for c in self.title.lower() if c.isalpha() or c.isdigit() or c == ' ']).rstrip()
             filename = '%s_%03d.%s' % (safename.replace(' ', '-'), imagecount, parts[-1].split('.')[-1])
             fullpath = os.path.join(targetdir, filename)
+            
+            self.storedImages.append(fullpath)
             if os.path.isfile(fullpath):
                 if overwrite:
                     os.remove(fullpath)
                 else:
-                    raise IOError('File already exists.')
+                    continue
             
             opener = ImageDownloader()
             opener.retrieve(url, fullpath)
-            
-            self.storedImages.append(fullpath)
 
 class ImageDownloader(FancyURLopener):
     version = '(Linux; U; Android 2.2.1; de-DE) AppleWebKit/533.1 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1'

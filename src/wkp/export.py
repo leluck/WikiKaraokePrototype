@@ -16,7 +16,7 @@ class PDFExporter:
         self.target = target
         self.pdf = pyfpdf.FPDF(format = 'A5', orientation = 'L')
         
-        self.article.downloadImages(overwrite = True)
+        self.article.downloadImages(overwrite = False)
         print('Generating PDF contents...')
         self._createTitlePage()
         

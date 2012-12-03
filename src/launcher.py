@@ -1,11 +1,16 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
+import sys
+sys.path.append('C:\\Program Files\\Python27\\lib\\site-packages\\PIL')
+#TODO: permanently add PIL to sys.path, installation for win was broken
+#      due to spaces in install path.
+
 import wkp.parser
 import wkp.export
 
 def launch():
-    example = 'http://de.wikipedia.org/wiki/Lama_(Kamel)'
+    example = 'http://de.wikipedia.org/wiki/Stechmücke'
     
     parser = wkp.parser.ArticleParser(example)
     article = parser.getArticle()
