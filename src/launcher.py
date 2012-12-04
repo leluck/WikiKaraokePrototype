@@ -10,7 +10,7 @@ import wkp.retriever
 import wkp.export
 
 def launch():
-    example = 'http://de.wikipedia.org/wiki/Stechmücke'
+    example = 'http://de.wikipedia.org/wiki/Lama_(Kamel)'
     
     receiver = wkp.retriever.ArticleRetriever(example)
     article = receiver.getArticle()
